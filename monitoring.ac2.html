@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ac.maryam.my.id • AC Monitoring System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+        }
+        .animate-iot { animation: pulse-dot 2s infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar (Next.js App Style) -->
+    <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0">
+        <div>
+            <!-- Logo / Brand -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2.5 bg-teal-500/10 rounded-xl border border-teal-500/20 text-teal-400">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm tracking-tight text-white">ac.maryam.my.id</h1>
+                    <p class="text-[11px] text-slate-400">smartcampus AC</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5 text-xs">
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-teal-500/10 text-teal-300 font-medium border border-teal-500/20">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>HVAC Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition">
+                    <i data-lucide="network" class="w-4 h-4"></i>
+                    <span>IoT Gateway Node</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>MQTT Telemetry</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer / User Profile -->
+        <div class="pt-4 border-t border-slate-800 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-teal-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs">
+                M
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-xs font-semibold text-slate-200 truncate">Maryam</p>
+                <p class="text-[10px] text-slate-400 truncate">Computer Systems</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-950">
+        
+        <!-- Top Navbar -->
+        <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-iot"></span>
+                    Gateway: 192.168.10.1 (Online)
+                </span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="simulateRefresh()" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-medium px-3.5 py-1.5 rounded-lg transition text-xs shadow-sm cursor-pointer">
+                    <i data-lucide="refresh-cw" id="refresh-icon" class="w-3.5 h-3.5"></i>
+                    <span>Sync Sensor</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Body -->
+        <main class="p-6 space-y-6 flex-grow max-w-7xl w-full mx-auto">
+            
+            <!-- Page Title Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-xl font-bold text-white tracking-tight">ac.maryam.my.id • Dashboard AC Kampus</h2>
+                    <p class="text-xs text-slate-400">smartcampus AC • Praktikum Jaringan Komputer</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-teal-400"></i>
+                    <span>Last Packet: <strong id="last-updated" class="text-slate-200">--:--:--</strong></span>
+                </div>
+            </div>
+
+            <!-- Summary Metrics Grid -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Unit AC Aktif</p>
+                        <h3 id="summary-active" class="text-2xl font-bold text-white mt-1">0 / 6</h3>
+                        <p class="text-[11px] text-teal-400 mt-0.5" id="summary-standby">0 standby</p>
+                    </div>
+                    <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
+                        <i data-lucide="air-vent" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Total Daya Listrik</p>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <h3 id="summary-power" class="text-2xl font-bold text-teal-400">0.00</h3>
+                            <span class="text-xs font-semibold text-slate-400">kW</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Beban gardu fakultas</p>
+                    </div>
+                    <div class="p-3 bg-teal-500/10 text-teal-400 rounded-xl border border-teal-500/20">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Suhu Rata-Rata</p>
+                        <h3 id="summary-temp" class="text-2xl font-bold text-sky-400 mt-1">0.0°C</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Target optimal: 22°C</p>
+                    </div>
+                    <div class="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
+                        <i data-lucide="thermometer" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Kelembapan</p>
+                        <h3 id="summary-humidity" class="text-2xl font-bold text-indigo-400 mt-1">0%</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Sensor DHT22</p>
+                    </div>
+                    <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+                        <i data-lucide="droplets" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6 Rooms Grid -->
+            <section id="rooms-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dinamis via JS -->
+            </section>
+
+            <!-- Network Log Terminal -->
+            <section class="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-teal-400"></i>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-teal-400">Simulasi Log Paket Jaringan (JSON Payload)</h4>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500">ac.maryam.my.id • Port 1883</span>
+                </div>
+                <div id="network-log" class="font-mono text-xs bg-slate-950 p-3 rounded-xl border border-slate-800 text-emerald-400 overflow-x-auto whitespace-nowrap">
+                    [SYSTEM] Next.js Dashboard Layout ready for ac.maryam.my.id...
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-900/50 border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500">
+            <p>© 2026 <strong>ac.maryam.my.id</strong> • SmartCampus HVAC & IoT Monitoring System</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let roomsData = [
+            {
+                id: 1,
+                name: "Lab Jaringan Komputer",
+                code: "R-301",
+                ip: "192.168.10.101",
+                isOn: true,
+                temp: 20.5,
+                targetTemp: 20,
+                humidity: 54,
+                powerKw: 1.85,
+                standbyPower: 0.05,
+                mode: "Cool"
+            },
+            {
+                id: 2,
+                name: "Ruang Server & NOC",
+                code: "R-102",
+                ip: "192.168.10.102",
+                isOn: true,
+                temp: 18.2,
+                targetTemp: 18,
+                humidity: 48,
+                powerKw: 2.40,
+                standbyPower: 0.08,
+                mode: "Cool"
+            },
+            {
+                id: 3,
+                name: "Ruang Kelas",
+                code: "R-201",
+                ip: "192.168.10.103",
+                isOn: true,
+                temp: 23.4,
+                targetTemp: 23,
+                humidity: 60,
+                powerKw: 1.25,
+                standbyPower: 0.04,
+                mode: "Eco"
+            },
+            {
+                id: 4,
+                name: "Ruang Rapat",
+                code: "R-202",
+                ip: "192.168.10.104",
+                isOn: false,
+                temp: 28.1,
+                targetTemp: 24,
+                humidity: 68,
+                powerKw: 1.30,
+                standbyPower: 0.04,
+                mode: "Cool"
+            },
+            {
+                id: 5,
+                name: "Perpustakaan Digital",
+                code: "R-105",
+                ip: "192.168.10.105",
+                isOn: true,
+                temp: 22.0,
+                targetTemp: 22,
+                humidity: 55,
+                powerKw: 1.50,
+                standbyPower: 0.05,
+                mode: "Dry"
+            },
+            {
+                id: 6,
+                name: "Ruang Dosen",
+                code: "R-305",
+                ip: "192.168.10.106",
+                isOn: false,
+                temp: 27.6,
+                targetTemp: 24,
+                humidity: 65,
+                powerKw: 1.15,
+                standbyPower: 0.04,
+                mode: "Fan"
+            }
+        ];
+
+        const modes = [
+            { name: "Cool", icon: "snowflake" },
+            { name: "Eco", icon: "leaf" },
+            { name: "Dry", icon: "droplet" },
+            { name: "Fan", icon: "wind" }
+        ];
+
+        function getCurrentPower(room) {
+            if (!room.isOn) return room.standbyPower;
+            const multiplier = { "Cool": 1.0, "Dry": 0.85, "Eco": 0.70, "Fan": 0.35 };
+            return +(room.powerKw * (multiplier[room.mode] || 1)).toFixed(2);
+        }
+
+        function updateSummary() {
+            const activeRooms = roomsData.filter(r => r.isOn);
+            const standbyCount = roomsData.length - activeRooms.length;
+            
+            const totalPower = roomsData.reduce((sum, r) => sum + getCurrentPower(r), 0);
+            const avgTemp = roomsData.reduce((sum, r) => sum + r.temp, 0) / roomsData.length;
+            const avgHumidity = roomsData.reduce((sum, r) => sum + r.humidity, 0) / roomsData.length;
+
+            document.getElementById("summary-active").textContent = `${activeRooms.length} / ${roomsData.length}`;
+            document.getElementById("summary-standby").textContent = `${standbyCount} standby`;
+            document.getElementById("summary-power").textContent = totalPower.toFixed(2);
+            document.getElementById("summary-temp").textContent = `${avgTemp.toFixed(1)}°C`;
+            document.getElementById("summary-humidity").textContent = `${Math.round(avgHumidity)}%`;
+            
+            const now = new Date();
+            document.getElementById("last-updated").textContent = now.toLocaleTimeString('id-ID');
+        }
+
+        function logNetworkPacket(room, action) {
+            const logEl = document.getElementById("network-log");
+            const payload = JSON.stringify({
+                domain: "ac.maryam.my.id",
+                timestamp: new Date().toISOString(),
+                node_ip: room.ip,
+                room: room.code,
+                action: action,
+                state: room.isOn ? "ACTIVE" : "STANDBY",
+                mode: room.mode,
+                set_temp: room.targetTemp,
+                power_kw: getCurrentPower(room)
+            });
+            logEl.textContent = `[TX -> ${room.ip}] ${payload}`;
+        }
+
+        function togglePower(id) {
+            const room = roomsData.find(r => r.id === id);
+            room.isOn = !room.isOn;
+            room.temp = room.isOn ? +(room.targetTemp + 0.5).toFixed(1) : +(room.temp + 2.5).toFixed(1);
+            logNetworkPacket(room, room.isOn ? "POWER_ON" : "STANDBY_MODE");
+            renderRooms();
+        }
+
+        function changeMode(id, newMode) {
+            const room = roomsData.find(r => r.id === id);
+            room.mode = newMode;
+            if (!room.isOn) room.isOn = true;
+            logNetworkPacket(room, `SET_MODE_${newMode.toUpperCase()}`);
+            renderRooms();
+        }
+
+        function adjustTemp(id, delta) {
+            const room = roomsData.find(r => r.id === id);
+            const nextTemp = room.targetTemp + delta;
+            if (nextTemp >= 16 && nextTemp <= 30) {
+                room.targetTemp = nextTemp;
+                if (room.isOn) {
+                    room.temp = +(room.targetTemp + (Math.random() * 0.6 - 0.2)).toFixed(1);
+                }
+                logNetworkPacket(room, `SET_TEMP_${nextTemp}C`);
+                renderRooms();
+            }
+        }
+
+        function simulateRefresh() {
+            const icon = document.getElementById("refresh-icon");
+            icon.classList.add("animate-spin");
+            
+            roomsData.forEach(room => {
+                const deltaTemp = (Math.random() * 0.4 - 0.2);
+                const deltaHum = Math.floor(Math.random() * 3 - 1);
+                room.temp = +(room.temp + deltaTemp).toFixed(1);
+                room.humidity = Math.min(85, Math.max(40, room.humidity + deltaHum));
+            });
+
+            setTimeout(() => {
+                icon.classList.remove("animate-spin");
+                renderRooms();
+                document.getElementById("network-log").textContent = `[MQTT SYNC] Telemetri 6 node pada ac.maryam.my.id berhasil disinkronkan (200 OK).`;
+            }, 400);
+        }
+
+        function renderRooms() {
+            const container = document.getElementById("rooms-container");
+            container.innerHTML = "";
+
+            roomsData.forEach(room => {
+                const currentKw = getCurrentPower(room);
+                const isOn = room.isOn;
+
+                const cardBg = isOn ? "bg-slate-900 border-teal-500/30 shadow-lg shadow-teal-950/20" : "bg-slate-900/60 border-slate-800 opacity-80";
+                const statusBadge = isOn
+                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> AKTIF
+                       </span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                         <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> STANDBY
+                       </span>`;
+
+                const modeButtonsHTML = modes.map(m => {
+                    const activeModeClass = (isOn && room.mode === m.name)
+                        ? "bg-teal-600 text-white border-teal-500 shadow-sm"
+                        : "bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-800 hover:text-slate-200";
+                    return `
+                        <button onclick="changeMode(${room.id}, '${m.name}')" 
+                            class="flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-xs font-medium transition cursor-pointer ${activeModeClass}">
+                            <i data-lucide="${m.icon}" class="w-3.5 h-3.5 mb-1"></i>
+                            <span>${m.name}</span>
+                        </button>
+                    `;
+                }).join("");
+
+                const cardHTML = `
+                    <div class="rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden ${cardBg}">
+                        <div class="p-4 border-b border-slate-800/80 flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-teal-300 font-semibold">${room.code}</span>
+                                    <span class="text-[10px] font-mono text-slate-400">${room.ip}</span>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">${room.name}</h4>
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                ${statusBadge}
+                                <button onclick="togglePower(${room.id})" title="Toggle Power"
+                                    class="p-2 rounded-xl transition cursor-pointer ${isOn ? 'bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 border border-teal-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}">
+                                    <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 space-y-4">
+                            <div class="flex items-center justify-between bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                                <div>
+                                    <span class="text-[11px] text-slate-400 block">Suhu Ruangan</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-2xl font-bold ${isOn ? 'text-white' : 'text-slate-500'}">${room.temp.toFixed(1)}</span>
+                                        <span class="text-xs font-semibold text-slate-400">°C</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] text-slate-500 mb-1">Set Target</span>
+                                    <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg p-1">
+                                        <button onclick="adjustTemp(${room.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded bg-slate-800 hover:bg-teal-600 hover:text-white text-slate-300 font-bold cursor-pointer">-</button>
+                                        <span class="text-xs font-bold w-7 text-center text-teal-400">${room.targetTemp}°</span>
+                                        <button onclick="adjustTemp(${room.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded bg-slate-800 hover:bg-teal-600 hover:text-white text-slate-300 font-bold cursor-pointer">+</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40">
+                                    <div class="p-2 bg-sky-500/10 text-sky-400 rounded-lg border border-sky-500/20">
+                                        <i data-lucide="droplets" class="w-3.5 h-3.5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 block">Kelembapan</span>
+                                        <span class="text-xs font-bold text-slate-200">${room.humidity}%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40">
+                                    <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
+                                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 block">Daya Listrik</span>
+                                        <span class="text-xs font-bold text-slate-200">${currentKw.toFixed(2)} kW</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[11px] text-slate-400">Mode Operasi</span>
+                                    <span class="text-[10px] font-semibold text-teal-400">${isOn ? room.mode : 'Idle'}</span>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    ${modeButtonsHTML}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+
+            updateSummary();
+            lucide.createIcons();
+        }
+
+        document.addEventListener("DOMContentLoaded", renderRooms);
+    </script>
+</body>
+</html>
